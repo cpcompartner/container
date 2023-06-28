@@ -1,3 +1,11 @@
+.t3-page-column .t3-page-column {
+    background-color: #cac9c9;
+}
+
+.t3-page-column .t3-page-column .t3-page-column {
+    background-color: var(--pagemodule-grid-cell-bg);
+}
+
 .t3-page-column-header-icons .icon-actions-view-list-collapse {
     display: inline-block;
 }
