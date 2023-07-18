@@ -81,7 +81,7 @@ class ContainerPreviewRenderer extends StandardContentPreviewRenderer
                 if (isset($this->getBackendUser()->uc['moduleData']['list']['containerExpanded'][$collapseId])) {
                     $collapsed = $this->getBackendUser()->uc['moduleData']['list']['containerExpanded'][$collapseId] > 0;
                 } else {
-                    $collapsed = (bool)$col['collapsed'] ?? false;
+                    $collapsed = (bool)($col['collapsed'] ?? false);
                 }
 
                 $newContentElementAtTopTarget = $this->containerService->getNewContentElementAtTopTargetInColumn($container, $col['colPos']);
