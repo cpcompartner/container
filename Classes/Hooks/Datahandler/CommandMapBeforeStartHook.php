@@ -87,7 +87,7 @@ class CommandMapBeforeStartHook
                                 break;
                             }
                             $record = $this->database->fetchOneRecord($targetContainerId);
-                            $targetContainerId = $record['tx_container_parent'] ?? 0;
+                            $targetContainerId = (int)($record['tx_container_parent'] ?? 0);
                         }
                     }
 
@@ -122,19 +122,20 @@ class CommandMapBeforeStartHook
                     if (in_array($operation, ['copy', 'move'], true) === false) {
                         continue;
                     }
-                    if (
-                        (!isset($value['update']['tx_container_parent']) || (int)$value['update']['tx_container_parent'] === 0) &&
-                        ((is_array($value) && $value['target'] < 0) || (int)$value < 0)
-                    ) {
+                    if ((is_array($value) && $value['target'] < 0) || (int)$value < 0) {
                         if (is_array($value)) {
                             $target = -(int)$value['target'];
                         } else {
                             // simple command
                             $target = -(int)$value;
                         }
-                        $record = $this->database->fetchOneRecord($target);
-                        if ($record === null || $record['tx_container_parent'] > 0) {
+                        if (isset($value['update']['tx_container_parent']) && $target === (int)$value['update']['tx_container_parent']) {
                             // elements in container have already correct target
+                            continue;
+                        }
+                        $record = $this->database->fetchOneRecord($target);
+                        if ($record === null) {
+                            // should not happen
                             continue;
                         }
                         if (!$this->tcaRegistry->isContainerElement($record['CType'])) {
@@ -257,7 +258,7 @@ class CommandMapBeforeStartHook
                                 // should not happen
                                 continue;
                             }
-                            $translatedContainer = $this->database->fetchOneTranslatedRecordByLocalizationParent($container['uid'], (int)$data);
+                            $translatedContainer = $this->database->fetchOneTranslatedRecordByLocalizationParent((int)$container['uid'], (int)$data);
                             if ($translatedContainer === null || (int)$translatedContainer['l18n_parent'] === 0) {
                                 $this->logAndUnsetCmd($id, $cmd, 'Localization failed: container is in free mode or not translated', $dataHandler);
                             }
