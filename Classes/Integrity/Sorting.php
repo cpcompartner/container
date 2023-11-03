@@ -12,6 +12,7 @@ namespace B13\Container\Integrity;
  * of the License, or any later version.
  */
 
+use B13\Container\Backend\Grid\ContainerGridColumn;
 use B13\Container\Domain\Factory\ContainerFactory;
 use B13\Container\Domain\Factory\Exception;
 use B13\Container\Domain\Model\Container;
@@ -53,7 +54,7 @@ class Sorting implements SingletonInterface
         $this->containerService = $containerService;
     }
 
-    public function run(bool $dryRun = true): array
+    public function run(bool $dryRun = true, bool $enableLogging = false): array
     {
         $cTypes = $this->tcaRegistry->getRegisteredCTypes();
         $containerRecords = $this->database->getContainerRecords($cTypes);
@@ -67,7 +68,7 @@ class Sorting implements SingletonInterface
             }
             $this->unsetContentDefenderConfiguration($cType);
         }
-        $this->fixChildrenSorting($containerRecords, $colPosByCType, $dryRun);
+        $this->fixChildrenSorting($containerRecords, $colPosByCType, $dryRun, $enableLogging);
         return $this->errors;
     }
 
@@ -111,10 +112,10 @@ class Sorting implements SingletonInterface
         return false;
     }
 
-    protected function fixChildrenSorting(array $containerRecords, array $colPosByCType, bool $dryRun): void
+    protected function fixChildrenSorting(array $containerRecords, array $colPosByCType, bool $dryRun, bool $enableLogging): void
     {
         $datahandler = GeneralUtility::makeInstance(DataHandler::class);
-        $datahandler->enableLogging = false;
+        $datahandler->enableLogging = $enableLogging;
         foreach ($containerRecords as $containerRecord) {
             try {
                 $container = $this->containerFactory->buildContainer((int)$containerRecord['uid']);
@@ -140,7 +141,7 @@ class Sorting implements SingletonInterface
                                         'action' => 'paste',
                                         'target' => $container->getPid(),
                                         'update' => [
-                                            'colPos' => $container->getUid() . '-' . $child['colPos'],
+                                            'colPos' => $container->getUid() . ContainerGridColumn::CONTAINER_COL_POS_DELIMITER . $child['colPos'],
                                             'sys_language_uid' => $containerRecord['sys_language_uid'],
 
                                         ],
@@ -159,7 +160,7 @@ class Sorting implements SingletonInterface
                                         'action' => 'paste',
                                         'target' => -$prevChild['uid'],
                                         'update' => [
-                                            'colPos' => $container->getUid() . '-' . $child['colPos'],
+                                            'colPos' => $container->getUid() . ContainerGridColumn::CONTAINER_COL_POS_DELIMITER . $child['colPos'],
                                             'sys_language_uid' => $containerRecord['sys_language_uid'],
 
                                         ],
